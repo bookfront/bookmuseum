@@ -9,38 +9,39 @@ function Join() {
   const [pw, setPw] = useState("");
   const [pwCheck, setPwCheck] = useState("");
   const [name, setName] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
-  const [idCheckMessage, setIdCheckMessage] = useState(""); // 아이디 체크 메시지
+
+  const [idCheckMessage, setIdCheckMessage] = useState("");
+  const [pwError, setPwError] = useState("");            
+  const [inputError, setInputError] = useState("");        
 
   const handleIdCheck = () => {
     if (!id) {
-      setIdCheckMessage("아이디를 입력해주세요!");
+      setIdCheckMessage("아이디를 입력해주세요.");
       return;
     }
 
-    // ===== 여기서 나중에 실제 API 호출 예정 =====
-    // 예시: 백엔드에서 /check-id?id=aaa 이런 식으로 확인
-    const existingIds = ["test", "admin", "user1"]; // 가짜 DB 예시
-
+    const existingIds = ["test", "admin", "user1"];
     if (existingIds.includes(id)) {
-      setIdCheckMessage("이미 존재하는 아이디입니다!");
+      setIdCheckMessage("이미 존재하는 아이디입니다.");
     } else {
-      setIdCheckMessage("사용 가능한 아이디입니다!");
+      setIdCheckMessage("사용 가능한 아이디입니다.");
     }
   };
 
   const handleJoin = () => {
-    if (pw !== pwCheck) {
-      setErrorMessage("비밀번호가 일치하지 않습니다!");
-      return;
-    }
+    setPwError("");     
+    setInputError("");  
 
     if (!id || !pw || !pwCheck || !name) {
-      setErrorMessage("모든 정보를 입력해주세요.");
+      setInputError("모든 정보를 입력해주세요.");
       return;
     }
 
-    setErrorMessage("");
+    if (pw !== pwCheck) {
+      setPwError("비밀번호가 일치하지 않습니다.");
+      return;
+    }
+
     alert("회원가입이 완료되었습니다!");
     navigate("/login");
   };
@@ -48,8 +49,8 @@ function Join() {
   return (
     <div className="join-container">
       <div className="join-box">
-        <h3 className="join-title">아이디</h3>
 
+        <h3 className="join-title">아이디</h3>
         <div className="id-check-wrapper">
           <input
             className="join-input"
@@ -63,9 +64,7 @@ function Join() {
           </button>
         </div>
 
-        {idCheckMessage && (
-          <p className="id-check-message">{idCheckMessage}</p>
-        )}
+        {idCheckMessage && <p className="id-check-message">{idCheckMessage}</p>}
 
         <h3 className="join-title">비밀번호</h3>
         <input
@@ -84,7 +83,8 @@ function Join() {
           value={pwCheck}
           onChange={(e) => setPwCheck(e.target.value)}
         />
-        {errorMessage && <p className="error-message">{errorMessage}</p>}
+
+        {pwError && <p className="error-message">{pwError}</p>}
 
         <h3 className="join-title">이름</h3>
         <input
@@ -94,6 +94,8 @@ function Join() {
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
+
+        {inputError && <p className="input-error-message">{inputError}</p>}
 
         <button className="join-button" onClick={handleJoin}>
           회원가입
