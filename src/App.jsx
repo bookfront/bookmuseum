@@ -10,12 +10,14 @@ import Home from "./pages/home";
 import Login from "./pages/login";
 import Join from "./pages/join";
 import Detail from "./pages/detail";
+import Header from "./components/layout/Header.jsx";
 
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/header" element={< Header/>}/>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/join" element={<Join />} />
