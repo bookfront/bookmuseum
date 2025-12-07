@@ -9,6 +9,7 @@ import Home from "./pages/home";
 import Login from "./pages/login";
 import Join from "./pages/join";
 import Detail from "./pages/detail";
+import MyPage from "./pages/mypage/mypage.jsx";
  
 import Header from "./components/layout/Header.jsx";
  
