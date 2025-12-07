@@ -1,9 +1,7 @@
 /* 전체 영역 */
 .detail-container {
-  width: 100%;
-  padding-top: 150px;
+  padding-top: 50px;
   padding-left: 350px;
-  box-sizing: border-box;
 }
 
 /* 도서 상세 정보 제목 */

@@ -17,7 +17,7 @@ export default function Header({ isLoggedIn, setIsLoggedIn }) {
 
                 {/* 로고 */}
                 <Link to="/" style={{ textDecoration: "none" }}>
-                    <div style={styles.logo}>📚</div>
+                    <img src="/book_logo.png" className="book-logo-icon"  style={styles.logo}  />
                 </Link>
 
                 {/* 오른쪽 버튼 영역 */}
@@ -48,7 +48,7 @@ export default function Header({ isLoggedIn, setIsLoggedIn }) {
 const styles = {
     header: {
         width: "100%",
-        borderBottom: "1px solid #eee",
+        
         background: "#fff",
         zIndex: 10,
     },
@@ -63,8 +63,7 @@ const styles = {
     },
 
     logo: {
-        fontSize: "24px",
-        cursor: "pointer",
+        width: "250px",
     },
 
     right: {
@@ -88,4 +87,6 @@ const styles = {
         color: "#fff",
         cursor: "pointer",
     },
+
+    
 };
