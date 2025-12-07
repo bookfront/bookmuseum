@@ -1,5 +1,5 @@
 // src/pages/update/BookUpdatePage.jsx
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import noneImg from "../../asserts/noneimg.png";
 import {
@@ -13,53 +13,58 @@ import {
     CardMedia,
 } from "@mui/material";
 
-function BookUpdatePage() {
+// ✅ 날짜를 "YYYY-MM-DD"로 만드는 유틸 함수
+function formatDateToYMD(date = new Date()) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+}
+
+// ❌ function BookUpdatePage({bookList}, {setBookList})
+// 👉 props는 하나의 객체로 받아야 함
+function BookUpdatePage({ bookList, setBookList }) {
     const navigate = useNavigate();
     const location = useLocation();
 
-    // AiImagePage에서 돌아온 경우 들어오는 값들
-    const fromAi = location.state || {};
+    const fromState = location.state || {};
 
-    const [book_id, setBookId] = useState(fromAi.book_id || 1);
-    const [title, setTitle] = useState(fromAi.title || "고양이와 함께한 순간");
-    const [author, setAuthor] = useState(fromAi.author || "이수린");
-    const [description, setDescription] = useState(fromAi.description || "책 내용!");
-    const [coverImage, setCoverImage] = useState(fromAi.coverImage || noneImg);
-    const [coverImageId, setCoverImageId] = useState(fromAi.imageId || 1001);
+    // ✅ id 이름 통일 (book_id로 넘어와도 대비)
+    const initialId = fromState.id ?? fromState.book_id ?? 1;
 
-    // 버튼 활성화 여부
-    const isFormValid = !!(
-        title.trim() &&
-        author.trim() &&
-        description.trim() &&
-        coverImage
+    const [id] = useState(initialId);
+    const [title, setTitle] = useState(
+        fromState.title || "고양이와 함께한 순간"
+    );
+    const [author, setAuthor] = useState(fromState.author || "이수린");
+    const [description, setDescription] = useState(
+        fromState.description || "책 내용!"
+    );
+    const [coverImage, setCoverImage] = useState(
+        fromState.coverImage || noneImg
+    );
+    const [coverImageId, setCoverImageId] = useState(
+        fromState.imageId ?? fromState.coverImageId ?? 1001
     );
 
-    useEffect(() => {
-        // AiImagePage에서 돌아올 때 state가 갱신된 경우 반영
-        if (fromAi.coverImage) {
-            setCoverImage(fromAi.coverImage);
-            setCoverImageId(fromAi.imageId || null);
-        }
-        if (fromAi.book_id) {
-            setBookId(fromAi.book_id);
-        }
-        if (fromAi.title) setTitle(fromAi.title);
-        if (fromAi.author) setAuthor(fromAi.author);
-        if (fromAi.description) setDescription(fromAi.description);
-    }, [fromAi]);
+    // 🔹 등록일은 그대로 유지해야 하니까 state로 들고 있음
+    const [regTime] = useState(fromState.reg_time || null);
 
+    const isFormValid =
+        title.trim() && author.trim() && description.trim() && coverImage;
+
+    // ✅ AiImagePage로 이동 (수정 모드)
     const goToAiImage = () => {
         navigate("/ai-image", {
             state: {
-                mode: "edit",   // ✅ 수정 모드
+                mode: "edit",
                 book: {
-                    book_id,
-                    title,
-                    author,
-                    description,
+                    id,
+                    title: title.trim(),
+                    author: author.trim(),
+                    description: description.trim(),
                 },
-                currentImageId: coverImageId,
+                currentImageId: coverImageId || null,
             },
         });
     };
@@ -72,25 +77,44 @@ function BookUpdatePage() {
             return;
         }
 
+        // 📦 수정된 책 정보
         const payload = {
-            book_id,
-            title,
-            author,
-            description,
+            id,
+            title: title.trim(),
+            author: author.trim(),
+            description: description.trim(),
             coverImage,
             coverImageId,
+            reg_time: regTime,               // ✅ 기존 등록일 유지
+            update_time: formatDateToYMD(),  // ✅ 오늘 날짜로 수정일 저장
+            owner: fromState.owner,  //로컬유저인식
         };
 
-        console.log("수정 데이터:", payload);
+        // 🔥 중앙 bookList에서 이 책만 교체 (Home / 다른 곳에서 공유)
+        if (typeof setBookList === "function") {
+            setBookList((prev) =>
+                prev.map((b) => (b.id === id ? payload : b))
+            );
+        } else {
+            console.warn("setBookList가 안 넘어왔습니다.");
+        }
+
         alert("수정 완료!");
+
+        // 🔥 MyPage 쪽에서 기존 로직(updatedBook)도 활용하고 싶다면 이름 맞추기
+        navigate("/mypage", {
+            state: {
+                updatedBook: payload, // ✅ MyPage의 updatedBook 과 이름 맞춤
+            },
+        });
     };
 
     return (
         <Box
             sx={{
-                width: "100%",
-                paddingTop: "218px",
-                paddingLeft: "280px",
+                width: "1400px",
+                paddingTop: "80px",
+                paddingLeft: "270px",
                 boxSizing: "border-box",
             }}
         >
@@ -109,7 +133,13 @@ function BookUpdatePage() {
                 <Grid container columnSpacing={10}>
                     {/* LEFT - 이미지 영역 */}
                     <Grid item>
-                        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                        <Box
+                            sx={{
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "center",
+                            }}
+                        >
                             <Card
                                 sx={{
                                     width: 500,
@@ -169,7 +199,7 @@ function BookUpdatePage() {
                     <Grid item xs={6}>
                         <Box
                             sx={{
-                                maxWidth: 600,
+                                maxWidth: 500,
                                 display: "flex",
                                 flexDirection: "column",
                                 gap: 3,
@@ -179,7 +209,9 @@ function BookUpdatePage() {
                             {/* 제목 */}
                             <Box sx={{ display: "flex", alignItems: "center" }}>
                                 <Box sx={{ width: 60, mr: 3 }}>
-                                    <Typography sx={{ fontWeight: 600, fontSize: 14 }}>
+                                    <Typography
+                                        sx={{ fontWeight: 600, fontSize: 14 }}
+                                    >
                                         제목
                                     </Typography>
                                 </Box>
@@ -203,7 +235,9 @@ function BookUpdatePage() {
                             {/* 저자 */}
                             <Box sx={{ display: "flex", alignItems: "center" }}>
                                 <Box sx={{ width: 60, mr: 3 }}>
-                                    <Typography sx={{ fontWeight: 600, fontSize: 14 }}>
+                                    <Typography
+                                        sx={{ fontWeight: 600, fontSize: 14 }}
+                                    >
                                         저자
                                     </Typography>
                                 </Box>
@@ -225,9 +259,16 @@ function BookUpdatePage() {
                             </Box>
 
                             {/* 내용 */}
-                            <Box sx={{ display: "flex", alignItems: "flex-start" }}>
+                            <Box
+                                sx={{
+                                    display: "flex",
+                                    alignItems: "flex-start",
+                                }}
+                            >
                                 <Box sx={{ width: 60, mr: 3, pt: 1 }}>
-                                    <Typography sx={{ fontWeight: 600, fontSize: 14 }}>
+                                    <Typography
+                                        sx={{ fontWeight: 600, fontSize: 14 }}
+                                    >
                                         내용
                                     </Typography>
                                 </Box>
@@ -235,7 +276,9 @@ function BookUpdatePage() {
                                 <TextField
                                     multiline
                                     value={description}
-                                    onChange={(e) => setDescription(e.target.value)}
+                                    onChange={(e) =>
+                                        setDescription(e.target.value)
+                                    }
                                     placeholder="등록할 설명을 입력해주세요."
                                     sx={{
                                         width: "500px",
@@ -250,9 +293,10 @@ function BookUpdatePage() {
                                 />
                             </Box>
 
+                            {/* 수정 버튼 */}
                             <Box
                                 sx={{
-                                    width: "580px",
+                                    width: "500px",
                                     display: "flex",
                                     justifyContent: "flex-end",
                                     mt: 0.5,
@@ -268,7 +312,9 @@ function BookUpdatePage() {
                                         fontSize: 14,
                                         bgcolor: isFormValid ? "#222" : "#aaa",
                                         "&:hover": {
-                                            bgcolor: isFormValid ? "#333" : "#aaa",
+                                            bgcolor: isFormValid
+                                                ? "#333"
+                                                : "#aaa",
                                         },
                                     }}
                                 >

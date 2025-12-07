@@ -40,7 +40,11 @@ function AiImagePage() {
                 <Typography variant="h5" gutterBottom>
                     잘못된 접근입니다.
                 </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ mb: 2 }}
+                >
                     도서 등록/수정 화면에서 다시 시도해주세요.
                 </Typography>
                 <Button
@@ -53,18 +57,18 @@ function AiImagePage() {
         );
     }
 
-    // 프론트에서 book_id로 통일
-    const book_id = rawBook.book_id ?? null;
-    const book_title = rawBook.title ?? "";
-    const book_author = rawBook.author ?? "";
-    const book_description = rawBook.description ?? "";
+    // ✅ 도서 ID 통일: id 기준, 예전 book_id도 대비
+    const bookId = rawBook.id ?? rawBook.book_id ?? null;
+    const bookTitle = rawBook.title ?? "";
+    const bookAuthor = rawBook.author ?? "";
+    const bookDescription = rawBook.description ?? "";
 
-    //  OpenAI API 키 (연습이라 화면에서 받도록)
+    // OpenAI API 키 (연습이라 화면에서 받도록)
     const [apiKey, setApiKey] = useState("");
 
     const [prompt, setPrompt] = useState("");
     const [loading, setLoading] = useState(false);
-    const [image, setImage] = useState(null); // { imgId, book_id, imgUrl }
+    const [image, setImage] = useState(null); // { imgId, bookId, imgUrl }
     const [error, setError] = useState(null);
 
     // ==============================
@@ -84,24 +88,22 @@ function AiImagePage() {
         setError(null);
 
         try {
-            // 1. fetch 헤더 (Headers)
             const response = await fetch(
                 "https://api.openai.com/v1/images/generations",
                 {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        Authorization: `Bearer ${apiKey}`, // 'Bearer ' 꼭 포함
+                        Authorization: `Bearer ${apiKey}`,
                     },
-                    // 2. fetch 바디 (Body)
                     body: JSON.stringify({
-                        prompt: prompt,           // 도서 제목/내용 기반 설명
-                        model: "dall-e-3",        // 또는 "dall-e-2"
-                        n: 1,                     // 생성 이미지 개수
-                        size: "1024x1024",        // 슬라이드 예시
-                        quality: "standard",      // "standard" | "hd"
-                        style: "vivid",           // "vivid" | "natural"
-                        response_format: "url",   // URL로 받기
+                        prompt: prompt,
+                        model: "dall-e-3",
+                        n: 1,
+                        size: "1024x1024",
+                        quality: "standard",
+                        style: "vivid",
+                        response_format: "url",
                     }),
                 }
             );
@@ -112,10 +114,7 @@ function AiImagePage() {
                 throw new Error(errData.error?.message || "OpenAI 요청 실패");
             }
 
-            // 🔍 OpenAI 응답(JSON) 파싱
             const data = await response.json();
-
-            // data.data 배열의 0번째 url 추출 (슬라이드와 동일)
             const imageUrl = data.data?.[0]?.url;
             if (!imageUrl) {
                 throw new Error("이미지 URL이 응답에 없습니다.");
@@ -123,15 +122,12 @@ function AiImagePage() {
 
             console.log("생성된 이미지 URL:", imageUrl);
 
-            // React 상태에 저장해서 미리보기 + 다음 단계로 넘기기
+            // ✅ 프론트 상태에 저장
             setImage({
                 imgId: Date.now(), // 프론트 임시 id
-                book_id,
+                bookId,
                 imgUrl: imageUrl,
             });
-
-            // 여기서 바로 Spring Boot로 보내고 싶으면 (슬라이드 3번 단계)
-            // await bookService.updateBookCoverUrl(book_id, imageUrl);
         } catch (e) {
             console.error(e);
             setError(e.message || "이미지 생성 중 오류가 발생했어.");
@@ -148,23 +144,25 @@ function AiImagePage() {
         }
 
         const commonState = {
+            // ✅ Create / Update에서 기대하는 키 이름
+            id: bookId,
             coverImage: image.imgUrl,
             imageId: image.imgId,
-            book_id, //
+
+            // 혹시 예전 코드에서 book_id를 쓰고 있다면 대비 차원에서 같이 보냄 (선택)
+            // book_id: bookId,
 
             // 기존 입력값 유지
-            title: book_title,
-            author: book_author,
-            description: book_description,
+            title: bookTitle,
+            author: bookAuthor,
+            description: bookDescription,
         };
 
         if (mode === "edit") {
-            //  도서 수정 페이지로 복귀
             navigate("/update", {
                 state: commonState,
             });
         } else {
-            //  도서 등록 페이지로 복귀
             navigate("/register", {
                 state: commonState,
             });
@@ -175,9 +173,9 @@ function AiImagePage() {
         <Box
             className="detail-container"
             sx={{
-                width: "100%",
-                paddingTop: "218px",
-                paddingLeft: "280px",
+                width: "1400px",
+                paddingTop: "10px",
+                paddingLeft: "270px",
                 boxSizing: "border-box",
                 minHeight: "100vh",
                 maxWidth: 960,
@@ -196,12 +194,25 @@ function AiImagePage() {
                 {/* 상단: 도서 정보 + 안내 */}
                 <Box sx={{ mb: 4 }}>
                     {/* 도서정보: 제목 (가로 정렬) */}
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
-                        <Typography variant="subtitle2" sx={{ fontWeight: 700, fontSize: 30 }}>
+                    <Box
+                        sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1,
+                            mb: 1,
+                        }}
+                    >
+                        <Typography
+                            variant="subtitle2"
+                            sx={{ fontWeight: 700, fontSize: 30 }}
+                        >
                             도서:
                         </Typography>
-                        <Typography variant="h6" sx={{ fontWeight: 600, fontSize: 30 }}>
-                            {book_title}
+                        <Typography
+                            variant="h6"
+                            sx={{ fontWeight: "bold", fontSize: 30 }}
+                        >
+                            {bookTitle}
                         </Typography>
                     </Box>
 
@@ -210,7 +221,7 @@ function AiImagePage() {
                         color="text.secondary"
                         sx={{ display: "block", mt: 0.5, mb: 2 }}
                     >
-                       ID : {book_id}
+                        ID : {bookId}
                     </Typography>
 
                     {/* 🔑 API 키 입력 */}
@@ -223,7 +234,10 @@ function AiImagePage() {
                         onChange={(e) => setApiKey(e.target.value)}
                     />
 
-                    <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
+                    <Typography
+                        variant="subtitle2"
+                        sx={{ fontWeight: 600, mb: 1 }}
+                    >
                         원하는 표지 이미지를 생성해보세요.
                     </Typography>
 
@@ -255,7 +269,9 @@ function AiImagePage() {
                         onClick={handleGenerateImage}
                         disabled={loading}
                         startIcon={
-                            loading ? <CircularProgress size={18} color="inherit" /> : null
+                            loading ? (
+                                <CircularProgress size={18} color="inherit" />
+                            ) : null
                         }
                     >
                         {loading ? "이미지 생성 중..." : "이미지 생성하기"}
@@ -310,8 +326,12 @@ function AiImagePage() {
                             }}
                         >
                             <CardContent sx={{ py: 1.5 }}>
-                                <Typography variant="caption" color="text.secondary">
-                                    img_id : {image.imgId} / book_id : {image.book_id}
+                                <Typography
+                                    variant="caption"
+                                    color="text.secondary"
+                                >
+                                    img_id : {image.imgId} / book_id :{" "}
+                                    {image.bookId}
                                 </Typography>
                             </CardContent>
                         </Card>

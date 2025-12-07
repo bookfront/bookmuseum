@@ -13,26 +13,29 @@ import MyPage from "./pages/mypage/mypage.jsx";
 
 import Header from "./components/layout/Header.jsx";
 
-
 function App() {
 
+    // 🔥 로그인 여부
     const [isLoggedIn, setIsLoggedIn] = useState(
-        !!localStorage.getItem("token")
+        !!localStorage.getItem("currentUser")
     );
+
+    // 🔥 모든 페이지가 공유하는 도서 리스트
+    const [bookList, setBookList] = useState([]);
 
     return (
         <BrowserRouter>
-
             <Header isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
+
             <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/login" element={<Login setIsLoggedIn={setIsLoggedIn} />} />
+                <Route path="/" element={<Home bookList={bookList} />} />
+                <Route path="/login" element={<Login setIsLoggedIn={setIsLoggedIn} />}/>
                 <Route path="/join" element={<Join />} />
                 <Route path="/detail" element={<Detail />} />
-                <Route path="/register" element={<BookCreatePage />} />
+                <Route path="/register" element={<BookCreatePage setBookList={setBookList} />}/>
                 <Route path="/ai-image" element={<AiImagePage />} />
-                <Route path="/update" element={<BookUpdatePage />} />
-                <Route path="/mypage" element={<MyPage />} />
+                <Route path="/update" element={<BookUpdatePage bookList={bookList} setBookList={setBookList} />}/>
+                <Route path="/mypage" element={<MyPage bookList={bookList} />}/>
             </Routes>
 
         </BrowserRouter>

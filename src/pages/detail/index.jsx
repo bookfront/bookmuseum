@@ -1,13 +1,24 @@
-import React from "react";
+// src/pages/detail/Detail.jsx
+import React, { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import "./detail.css";
 
 function Detail() {
-  // 📌 나중에 백엔드에서 데이터 받아오면 이 부분만 바꾸면 됨!
-  const book = {
-    title: "고양이와 함께한 순간",
-    date: "2025-01-01",
-    image: "/cat-book.png", // public 폴더에 넣어두면 됨
-    description: `
+    const location = useLocation();
+    const navigate = useNavigate();
+
+    // 가상 로그인 상태
+    const user = { username: "사용자1" }; // 로그인한 사용자 예시
+
+    // 🔹 MyPage에서 넘어온 책 데이터
+    const stateBook = location.state?.book;
+
+    // 🔹 기본 더미 데이터 (직접 진입했을 때 사용)
+    const fallbackBook = {
+        title: "고양이와 함께한 순간",
+        date: "2025-01-01",
+        image: "/cat-book.png",
+        description: `
 "우리는 때때로 너무 빨리 지나가 버리는 순간들을 뒤늦게 사랑하게 된다."
 이 책은 일상 속에서 살아가는 사람들이 아주 작고 순한 순간들,
 무심코 지나쳤던 감정과 풍경들을 다시 바라보도록 이끄는 이야기다.
@@ -25,41 +36,172 @@ function Detail() {
 저자는 그렇게 말한다.
 "행복은 거대한 파도가 아니라, 매일 우리 곁을 스치고 지나가는 작은 물결이다."
 
-우리도 어쩌면 이미 충분히 감정의 세계를 품고 살아가는 중이다.
-기쁨과 슬픔, 설렘과 멈춤은 큰 일들이 아니라 가장 사소한 것에서 출발한다.
-
-가끔은 너무 바쁘게 지나가며 놓친 것들을 돌아보길 바란다.
-또 어떤 날은 아무것도 아닌 일들로 인해 웃음이 새어나오기도 한다.
-
-이 책에서 다루는 이야기들은 거창하지 않다.
-그러나 독자의 마음을 가장 조용하게 흔드는 이야기들이다.
-
 평범한 일상 속에서 특별함을 만들고 싶은 모든 사람에게 바친다.
-    `,
-  };
+`,
+    };
 
-  return (
-    <div className="detail-container">
-      <h2 className="detail-title">도서 상세 정보</h2>
+    // 🔹 실제로 사용할 book 객체 (state -> fallback 순서)
+    const book = stateBook
+        ? {
+            title: stateBook.title,
+            image: stateBook.image,
+            description: stateBook.description,
+            reg_time: stateBook.reg_time || "날짜 없음",
+            update_time: stateBook.update_time || null,
+        }
+        : fallbackBook;
 
-      <div className="detail-box">
-        {/* 왼쪽 이미지 */}
-        <div className="detail-image-wrapper">
-          <img src={book.image} alt="book" className="detail-image" />
+
+
+    const [comments, setComments] = useState([
+        {
+            id: 1,
+            username: "사용자1",
+            text: "이 책 읽어보고 싶었는데 감사합니다@@@ 표지가 엄청 귀엽네요 ㅎㅎㅎㅎㅎ",
+        },
+        {
+            id: 2,
+            username: "사용자2",
+            text: "이 책 읽어보고 싶었는데 감사합니다@@@ 표지가 엄청 귀엽네요 ㅎㅎㅎㅎㅎ",
+        },
+        {
+            id: 3,
+            username: "사용자3",
+            text: "이 책 읽어보고 싶었는데 감사합니다@@@ 표지가 엄청 귀엽네요 ㅎㅎㅎㅎㅎ",
+        },
+    ]);
+
+    const [newComment, setNewComment] = useState("");
+    const [editCommentId, setEditCommentId] = useState(null);
+
+    const handleAddComment = () => {
+        if (!newComment.trim()) {
+            alert("댓글을 입력해주세요!");
+            return;
+        }
+
+        const newCommentData = {
+            id: comments.length + 1,
+            username: user.username,
+            text: newComment,
+        };
+
+        if (editCommentId) {
+            // 수정 모드일 경우 댓글 수정
+            setComments((prev) =>
+                prev.map((comment) =>
+                    comment.id === editCommentId
+                        ? { ...comment, text: newComment }
+                        : comment
+                )
+            );
+            setEditCommentId(null); // 수정 후, 수정 모드 해제
+        } else {
+            // 새 댓글 추가
+            setComments((prev) => [...prev, newCommentData]);
+        }
+
+        setNewComment("");
+    };
+
+    // 댓글 삭제 처리
+    const handleDeleteComment = (id) => {
+        setComments((prev) => prev.filter((comment) => comment.id !== id));
+    };
+
+    // 댓글 수정 처리
+    const handleEditComment = (id, text) => {
+        setEditCommentId(id); // 수정할 댓글의 ID 설정
+        setNewComment(text); // 해당 댓글의 내용 입력창에 설정
+    };
+
+    return (
+        <div className="detail-container">
+            <h2 className="detail-title">도서 상세 정보</h2>
+
+            <div className="detail-box">
+                {/* 이미지 */}
+                <div className="detail-image-wrapper">
+                    <img src={book.image} alt="book" className="detail-image" />
+                </div>
+
+                {/* 내용 */}
+                <div className="detail-content">
+                    <div className="detail-header">
+                        <h3 className="book-title">{book.title}</h3>
+
+                        <div className="book-date-wrapper">
+                            <img src="/date.png" className="book-date-icon" alt="date" />
+                            <span className="book-date"> 등록일: {book.reg_time}</span>
+
+                            {book.update_time && (
+                                <span className="book-date">(수정일: {book.update_time})</span>
+                            )}
+                        </div>
+                    </div>
+
+                    <pre className="book-description">{book.description}</pre>
+                </div>
+            </div>
+
+            <div className="comment-section">
+                <h3 className="comment-title">댓글</h3>
+
+                <div className="comment-list">
+                    {comments.map((comment) => (
+                        <div className="comment-item" key={comment.id}>
+                            <span className="comment-user">{comment.username}</span>
+                            <span className="comment-text">{comment.text}</span>
+
+                            {/* 로그인한 사용자만 삭제/수정 가능 */}
+                            {comment.username === user.username && (
+                                <div className="comment-actions">
+                                    <button
+                                        className="comment-edit-btn"
+                                        onClick={() =>
+                                            handleEditComment(comment.id, comment.text)
+                                        }
+                                    >
+                                        <img
+                                            src="/edit.png"
+                                            alt="edit"
+                                            className="comment-edit-icon"
+                                        />
+                                    </button>
+                                    <button
+                                        className="comment-delete-btn"
+                                        onClick={() =>
+                                            handleDeleteComment(comment.id)
+                                        }
+                                    >
+                                        <img
+                                            src="/delete.png"
+                                            alt="delete"
+                                            className="comment-delete-icon"
+                                        />
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                </div>
+
+                {/* 댓글 입력창 */}
+                <div className="comment-input-wrapper">
+                    <input
+                        className="comment-input"
+                        type="text"
+                        placeholder="댓글을 입력해주세요."
+                        value={newComment}
+                        onChange={(e) => setNewComment(e.target.value)}
+                    />
+                    <button className="comment-button" onClick={handleAddComment}>
+                        {editCommentId ? "수정" : "작성"}
+                    </button>
+                </div>
+            </div>
         </div>
-
-        {/* 오른쪽 내용 */}
-        <div className="detail-content">
-          <div className="detail-header">
-            <h3 className="book-title">{book.title}</h3>
-            <span className="book-date">📅 {book.date}</span>
-          </div>
-
-          <pre className="book-description">{book.description}</pre>
-        </div>
-      </div>
-    </div>
-  );
+    );
 }
 
 export default Detail;
