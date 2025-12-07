@@ -17,7 +17,7 @@ export default function Home() {
 
 const styles = {
   container: {
-    padding: "40px",
+    padding: "50px",
     textAlign: "center",
   },
   title: {
