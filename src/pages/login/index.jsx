@@ -10,24 +10,45 @@ function Login({ setIsLoggedIn }) {
     const [pw, setPw] = useState("");
     const [error, setError] = useState("");
 
-    const handleLogin = () => {
+    // ⭐ 실제 백엔드 로그인 API 호출로 변경
+    const handleLogin = async () => {
         setError("");
 
-        const users = JSON.parse(localStorage.getItem("users")) || [];
+        const payload = {
+            loginId: id,
+            pass: pw,
+        };
 
-        const foundUser = users.find(
-            (u) => u.id === id && u.pw === pw
-        );
+        try {
+            const res = await fetch("/api/member/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(payload),
+            });
 
-        if (!foundUser) {
-            setError("아이디 또는 비밀번호가 올바르지 않습니다.");
-            return;
+            const data = await res.json();
+
+            if (data.status !== "success") {
+                setError(data.message || "로그인 실패");
+                return;
+            }
+
+            // ⭐ 로그인 성공 → currentUser 저장
+            const loginUser = {
+                loginId: id,
+            };
+
+            localStorage.setItem("currentUser", JSON.stringify(loginUser));
+            setIsLoggedIn(true);
+            alert("로그인이 완료되었습니다!");
+
+            navigate("/");
+        } catch (err) {
+            console.error(err);
+            setError("서버와 연결할 수 없습니다.");
         }
-
-        // 로그인 성공 → currentUser 저장(로컬 변환하면서 추가한 부분)
-        localStorage.setItem("currentUser", JSON.stringify(foundUser));
-        setIsLoggedIn(true);
-        navigate("/");
     };
 
     return (

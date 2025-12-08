@@ -14,22 +14,40 @@ function Join() {
     const [pwError, setPwError] = useState("");
     const [inputError, setInputError] = useState("");
 
-    const handleIdCheck = () => {
+    const [isChecked, setIsChecked] = useState(false); // 중복확인 여부
+
+    // 🔥 아이디 중복확인
+    const handleIdCheck = async () => {
         if (!id) {
             setIdCheckMessage("아이디를 입력해주세요.");
             return;
         }
 
-        const users = JSON.parse(localStorage.getItem("users")) || [];
+        try {
+            const res = await fetch(`/api/member/check/${id}`, {
+                method: "POST", // 너가 백엔드를 이렇게 설정했으므로 유지
+            });
 
-        if (users.some((u) => u.id === id)) {
-            setIdCheckMessage("이미 존재하는 아이디입니다.");
-        } else {
-            setIdCheckMessage("사용 가능한 아이디입니다.");
+            const data = await res.json();
+
+            if (data.status === "중복") {
+                setIdCheckMessage("이미 존재하는 아이디입니다.");
+                setIsChecked(false);
+            } else if (data.status === "사용가능") {
+                setIdCheckMessage("사용 가능한 아이디입니다.");
+                setIsChecked(true);
+            } else {
+                setIdCheckMessage(data.message || "확인 중 오류 발생");
+                setIsChecked(false);
+            }
+        } catch (err) {
+            console.error(err);
+            setIdCheckMessage("서버 연결 오류");
         }
     };
 
-    const handleJoin = () => {
+    // 🔥 회원가입 처리
+    const handleJoin = async () => {
         setInputError("");
         setPwError("");
 
@@ -38,19 +56,44 @@ function Join() {
             return;
         }
 
+        if (!isChecked) {
+            setInputError("아이디 중복확인을 해주세요.");
+            return;
+        }
+
         if (pw !== pwCheck) {
             setPwError("비밀번호가 일치하지 않습니다.");
             return;
         }
 
-        const users = JSON.parse(localStorage.getItem("users")) || [];
+        // ⭐ 반드시 loginId 로 보내야 백엔드와 매칭됨!!!
+        const payload = {
+            loginId: id,
+            pass: pw,
+            name: name,
+        };
 
-        users.push({ id, pw, name });
+        try {
+            const res = await fetch("/api/member", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(payload),
+            });
 
-        localStorage.setItem("users", JSON.stringify(users));
+            const data = await res.json();
 
-        alert("회원가입이 완료되었습니다!");
-        navigate("/login");
+            if (data.status === "success") {
+                alert("회원가입이 완료되었습니다!");
+                navigate("/login");
+            } else {
+                setInputError(data.message || "회원가입 실패");
+            }
+        } catch (err) {
+            console.error(err);
+            setInputError("서버와 연결할 수 없습니다.");
+        }
     };
 
     return (
@@ -64,7 +107,11 @@ function Join() {
                         type="text"
                         placeholder="아이디를 입력해주세요."
                         value={id}
-                        onChange={(e) => setId(e.target.value)}
+                        onChange={(e) => {
+                            setId(e.target.value);
+                            setIsChecked(false);
+                            setIdCheckMessage("");
+                        }}
                     />
                     <button className="id-check-button" onClick={handleIdCheck}>
                         중복확인
@@ -75,7 +122,7 @@ function Join() {
                 <h3 className="join-title">비밀번호</h3>
                 <input
                     className="join-input"
-                    type="text"
+                    type="password"
                     placeholder="비밀번호를 입력해주세요."
                     value={pw}
                     onChange={(e) => setPw(e.target.value)}
