@@ -75,7 +75,7 @@ function Join() {
                 <h3 className="join-title">비밀번호</h3>
                 <input
                     className="join-input"
-                    type="password"
+                    type="text"
                     placeholder="비밀번호를 입력해주세요."
                     value={pw}
                     onChange={(e) => setPw(e.target.value)}
