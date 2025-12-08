@@ -71,7 +71,7 @@ export default function PopularBooksSection({ books, onToggleLike }) {
                 </IconButton>
 
                 {/* 카드 영역 */}
-                <Box sx={{ display: "flex", gap: 3, flex: 1, overflow: "hidden" }}>
+                <Box sx={{ display: "flex", ml: 5, gap: 3, flex: 1, overflow: "hidden" }}>
                     {visibleBooks.map((book, index) => (
                         <Box
                             key={book.id}

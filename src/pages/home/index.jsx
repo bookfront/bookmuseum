@@ -63,9 +63,9 @@ export default function HomePage() {
             <Box
                 sx={{
                     width: "100%",
-                    height: 260,
+                    height: 290,
                     overflow: "hidden",
-                    mb: 4,
+                    mb: 10,
                 }}
             >
                 <Box
