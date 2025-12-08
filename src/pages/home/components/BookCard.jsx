@@ -2,20 +2,16 @@ import React from "react";
 import { Box, Typography, IconButton } from "@mui/material";
 import HeartFill from "../assets/heart-fill.png";
 import HeartLine from "../assets/heart-line.png";
-import DefaultCover from "../assets/book-placeholder.png";
-import { useNavigate } from "react-router-dom";
+import DefaultCover from "/src/asserts/noneimg.png";
 
 export default function BookCard({
-                                     id,
                                      title,
                                      author,
                                      liked,
                                      onToggleLike,
-                                     rank,      // 지금은 안 쓰지만, 필요하면 제목 앞에 붙여서 쓸 수 있음
                                      imageUrl,
                                  }) {
-    const navigate = useNavigate();
-
+    // 텍스트 길이 제한 함수
     const truncate = (text, max) => {
         if (!text) return "";
         return text.length > max ? text.slice(0, max) + "..." : text;
@@ -23,7 +19,6 @@ export default function BookCard({
 
     return (
         <Box
-            onClick={() => navigate(`/detail/${id}`)}
             sx={{
                 width: 220,
                 height: 260,
@@ -35,7 +30,7 @@ export default function BookCard({
                 justifyContent: "space-between",
                 overflow: "hidden",
                 position: "relative",
-                cursor: "pointer",
+                cursor: "pointer", // 클릭 느낌만 유지 (실제 라우팅 없음)
                 transition: "0.2s ease",
                 "&:hover": {
                     boxShadow: "0 4px 10px rgba(0, 0, 0, 0.15)",
@@ -43,7 +38,7 @@ export default function BookCard({
                 },
             }}
         >
-            {/* 이미지 영역 */}
+            {/* 책 이미지 */}
             <Box
                 sx={{
                     flex: 1,
@@ -62,7 +57,6 @@ export default function BookCard({
                         display: "block",
                     }}
                     onError={(e) => {
-                        // 이미지 URL 깨지면 기본 이미지로 대체
                         e.currentTarget.src = DefaultCover;
                     }}
                 />
@@ -70,7 +64,7 @@ export default function BookCard({
 
             {/* 책 정보 */}
             <Box sx={{ p: 2 }}>
-                {/* 제목 + 하트 한 줄 */}
+                {/* 제목 + 하트 */}
                 <Box
                     sx={{
                         display: "flex",
@@ -88,14 +82,14 @@ export default function BookCard({
                             overflow: "hidden",
                             textOverflow: "ellipsis",
                         }}
-                        title={title} // hover 시 전체 제목 툴팁
+                        title={title}
                     >
                         {truncate(title, 10)}
                     </Typography>
 
                     <IconButton
                         onClick={(e) => {
-                            e.stopPropagation();
+                            e.stopPropagation(); // 부모 클릭 이벤트 막기
                             onToggleLike();
                         }}
                         sx={{ padding: 0 }}
