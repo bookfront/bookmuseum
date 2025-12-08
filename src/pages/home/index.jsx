@@ -1,50 +1,103 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { Box, Container } from "@mui/material";
 import PopularBooksSection from "./components/PopularBooksSection";
 import BooksListSection from "./components/BooksListSection";
+import { fetchPopularBooks, fetchBookList, updateBookLike } from "../../api/books";
 
-// 🔹 책이 하나도 없을 때 임시로 보여줄 더미 데이터
-const mockPopular = [
-    { id: 1, title: "인기 책 1", author: "저자 A" },
-    { id: 2, title: "인기 책 2", author: "저자 B" },
-    { id: 3, title: "인기 책 3", author: "저자 C" },
-    { id: 4, title: "인기 책 4", author: "저자 D" },
-];
+// 임시 배너 이미지 (원하는 경로/파일명으로 수정)
+import MainBanner from "./assets/book_banner.png"; // 없으면 주석 처리해두고 나중에 추가해도 됨
 
-const mockList = [
-    { id: 11, title: "목록 책 1", author: "저자 H" },
-    { id: 12, title: "목록 책 2", author: "저자 I" },
-    { id: 13, title: "목록 책 3", author: "저자 J" },
-    { id: 14, title: "목록 책 4", author: "저자 K" },
-];
+export default function HomePage() {
+    const [popularBooks, setPopularBooks] = useState([]);
+    const [bookList, setBookList] = useState([]);
 
-// ❗ App.jsx에서 <Home bookList={bookList} />로 내려준다는 가정
-export default function Home({ bookList }) {
-    const hasBooks = bookList && bookList.length > 0;
+    useEffect(() => {
+        // ✅ 인기 도서: 조회수(viewCount) 기준 정렬
+        fetchPopularBooks().then((data) => {
+            const sorted = data.sort((a, b) => b.viewCount - a.viewCount);
+            setPopularBooks(sorted);
+        });
 
-    // 🔸 인기도서: 일단 등록된 책들 중 앞에서 4개만 사용
-    const popularBooks = hasBooks ? bookList.slice(0, 4) : mockPopular;
+        // ✅ 도서 목록: 최신순(createdAt) 정렬
+        fetchBookList().then((data) => {
+            const sortedList = data.sort(
+                (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+            );
+            setBookList(sortedList);
+        });
+    }, []);
 
-    // 🔸 도서 목록: 등록된 전체 책 / 없으면 더미
-    const listBooks = hasBooks ? bookList : mockList;
+    // ✅ 인기 도서 좋아요 토글
+    const togglePopularLike = (id) => {
+        setPopularBooks((prev) => {
+            const updated = prev.map((book) =>
+                book.id === id ? { ...book, liked: !book.liked } : book
+            );
+
+            const target = prev.find((b) => b.id === id);
+            const nextLiked = target ? !target.liked : true;
+            updateBookLike(id, nextLiked);
+
+            return updated;
+        });
+    };
+
+    // ✅ 도서 목록 좋아요 토글
+    const toggleListLike = (id) => {
+        setBookList((prev) => {
+            const updated = prev.map((book) =>
+                book.id === id ? { ...book, liked: !book.liked } : book
+            );
+
+            const target = prev.find((b) => b.id === id);
+            const nextLiked = target ? !target.liked : true;
+            updateBookLike(id, nextLiked);
+
+            return updated;
+        });
+    };
 
     return (
-        <div style={styles.wrapper}>
-            <div style={styles.inner}>
-                <PopularBooksSection books={popularBooks} />
-                <BooksListSection books={listBooks} />
-            </div>
-        </div>
+        <Box sx={{ bgcolor: "#f5f5f5", minHeight: "100vh" }}>
+            {/* 🔥 HeroSection 대신 임시 이미지 배너 */}
+            <Box
+                sx={{
+                    width: "100%",
+                    height: 260,
+                    overflow: "hidden",
+                    mb: 4,
+                }}
+            >
+                <Box
+                    component="img"
+                    src={MainBanner}
+                    alt="메인 배너"
+                    sx={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                        display: "block",
+                    }}
+                />
+            </Box>
+
+            <Container maxWidth="lg">
+                {/* 인기 도서 섹션 */}
+                <Box sx={{ mt: 6 }}>
+                    <PopularBooksSection
+                        books={popularBooks}
+                        onToggleLike={togglePopularLike}
+                    />
+                </Box>
+
+                {/* 도서 목록 섹션 */}
+                <Box sx={{ mt: 15 }}>
+                    <BooksListSection
+                        books={bookList}
+                        onToggleLike={toggleListLike}
+                    />
+                </Box>
+            </Container>
+        </Box>
     );
 }
-
-const styles = {
-    wrapper: {
-        width: "100%",
-        display: "flex",
-        justifyContent: "center",
-    },
-    inner: {
-        width: "1200px", // 전체 레이아웃 너비
-        padding: "40px",
-    },
-};
