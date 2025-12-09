@@ -106,21 +106,12 @@ export default function MyPage() {
     const handleEdit = (book) => {
         navigate("/update", {
             state: {
-<<<<<<< HEAD
-                id: book.bookId,          // PK
-                title: book.title,
-                author: book.author,
-                description: book.content, // UpdatePage가 요구하는 필드명
-                coverImage: book.imgUrl,   // UpdatePage가 요구하는 필드명
-                coverImageId: book.imageId, // 있으면 전달 (없으면 undefined)
-=======
                 bookId: book.bookId,
                 title: book.title,
                 author: book.author,
                 description: book.description,  // ★ 내용 전달
                 coverImage: book.imgUrl,    // ★ 이미지 전달
                 coverImageId: book.imageId, // 있으면 전달
->>>>>>> e97a555719213f0cfec7740bce0a8af28f1a0a63
                 reg_time: book.reg_time,
                 update_time: book.update_time,
             },
@@ -143,7 +134,7 @@ export default function MyPage() {
 
             setLikedBooks((prev) =>
                 prev.map((b) =>
-                    b.book_id === bookId
+                    b.book.bookId === bookId
                         ? { ...b, liked: status === "liked" }
                         : b
                 )
@@ -154,6 +145,7 @@ export default function MyPage() {
             console.error("좋아요 토글 실패:", err);
         }
     };
+    
 
     // =====================================================
     // 📌 UI
