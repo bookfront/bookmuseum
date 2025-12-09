@@ -14,6 +14,8 @@ import {
     CircularProgress,
 } from "@mui/material";
 
+const API_BASE_URL = "http://localhost:8080"; // 스프링 서버 주소
+
 function AiImagePage() {
     const location = useLocation();
     const navigate = useNavigate();
@@ -126,11 +128,11 @@ function AiImagePage() {
 
             console.log("생성된 이미지 URL:", imageUrl);
 
-            // ✅ 프론트 상태에 저장 (백엔드와 매핑되는 필드 이름으로 관리)
+            // ✅ 프론트 상태에 저장
             setImage({
-                imageId: Date.now(), // 프론트 임시 id (백엔드 imageId 자리에 대응)
+                imageId: Date.now(), // 프론트 임시 id
                 bookId,
-                imgUrl: imageUrl,    // 백엔드 img_url
+                imgUrl: imageUrl,
             });
         } catch (e) {
             console.error(e);
@@ -140,25 +142,63 @@ function AiImagePage() {
         }
     };
 
-    // 생성된 이미지 선택 → 원래 페이지로 이동
-    const handleSelectImage = () => {
+    // 생성된 이미지 선택 → (edit면 서버에 저장까지) → 원래 페이지로 이동
+    const handleSelectImage = async () => {
         if (!image) {
             alert("먼저 이미지를 생성해줘!");
             return;
         }
 
+        // 🟡 등록/수정 페이지로 넘길 공통 state
         const commonState = {
-            // ✅ Create / Update에서 기대하는 키 이름
             id: bookId,
-            coverImage: image.imgUrl,       // BookCreate/Update에서 img_url 로 변환
-            imageId: image.imageId,         // 이미지 식별자 (PUT /api/images/{imageId} 대비)
-
-            // 기존 입력값 유지
+            coverImage: image.imgUrl,
+            imageId: image.imageId,
             title: bookTitle,
             author: bookAuthor,
             description: bookDescription,
         };
 
+        // 🟢 수정 모드일 때: 서버에 표지 URL 반영
+        if (mode === "edit" && bookId) {
+            try {
+                const res = await fetch(
+                    `${API_BASE_URL}/api/books/${bookId}/cover-url`,
+                    {
+                        method: "PUT",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        // credentials: "include", // 세션 기반이면 주석 해제
+                        body: JSON.stringify({
+                            imgUrl: image.imgUrl, // CoverImageRequest의 필드명과 일치
+                        }),
+                    }
+                );
+
+                if (!res.ok) {
+                    console.warn(
+                        "표지 이미지 URL 업데이트 실패, 상태코드:",
+                        res.status
+                    );
+                } else {
+                    const updatedBook = await res
+                        .json()
+                        .catch(() => null);
+                    console.log(
+                        "서버에 표지 이미지 URL 반영 완료:",
+                        updatedBook
+                    );
+                }
+            } catch (err) {
+                console.warn(
+                    "표지 이미지 URL 업데이트 API 호출 실패:",
+                    err
+                );
+            }
+        }
+
+        // 🟣 화면 이동
         if (mode === "edit") {
             navigate("/update", {
                 state: commonState,
@@ -296,11 +336,11 @@ function AiImagePage() {
                     <Card
                         sx={{
                             width: "100%",
-                            maxWidth: 600,
+                            maxWidth: 400,
                             borderRadius: 2,
                             boxShadow: 3,
                             overflow: "hidden",
-                            height: 400,
+                            height: 450,
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
@@ -319,7 +359,7 @@ function AiImagePage() {
                         />
                     </Card>
 
-                    {/* 이미지 메타 정보 */}
+                    {/* 이미지 메타 정보 (URL은 안 보여주고 심플하게) */}
                     {image && (
                         <Card
                             sx={{
@@ -334,8 +374,8 @@ function AiImagePage() {
                                     variant="caption"
                                     color="text.secondary"
                                 >
-                                    image_id : {image.imageId} / book_id :{" "}
-                                    {image.bookId}
+                                    이미지 생성 완료 · image_id :{" "}
+                                    {image.imageId}
                                 </Typography>
                             </CardContent>
                         </Card>

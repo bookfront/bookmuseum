@@ -13,6 +13,9 @@ import {
     CardMedia,
 } from "@mui/material";
 
+// 🔗 백엔드 서버 주소 (BookCreatePage랑 맞게 사용)
+const API_BASE_URL = "http://localhost:8080";
+
 // 날짜를 "YYYY-MM-DD"로 만드는 유틸 함수
 function formatDateToYMD(date = new Date()) {
     const year = date.getFullYear();
@@ -28,8 +31,9 @@ function BookUpdatePage({ bookList, setBookList }) {
 
     const fromState = location.state || {};
 
-    // id 이름 통일 (id 또는 book_id)
-    const initialId = fromState.id ?? fromState.book_id ?? 1;
+    // id 이름 통일 (id / book_id / bookId 대응)
+    const initialId =
+        fromState.bookId ?? fromState.id ?? fromState.book_id ?? 1;
 
     const [id] = useState(initialId);
     const [title, setTitle] = useState(
@@ -77,34 +81,35 @@ function BookUpdatePage({ bookList, setBookList }) {
             return;
         }
 
-        // ✅ 백엔드 스펙에 맞는 payload (PUT /api/books/{bookId})
+        // ✅ 백엔드 Book 엔티티에 맞는 payload (PUT /api/books/{bookId})
+        // Book: title, author, content, imgUrl (추정)
         const apiPayload = {
-            book_id: id,
             title: title.trim(),
+            author: author.trim(),
             content: description.trim(),
-            img_url: coverImage,
-            update_date: formatDateToYMD(),
+            imgUrl: coverImage,
+            // updateDate 같은 필드가 엔티티에 있으면 여기에 맞춰 추가
         };
 
         let apiSuccess = false;
+        let updatedFromServer = null;
+        const updateDate = formatDateToYMD();
 
         try {
-            const res = await fetch(`/api/books/${id}`, {
-                method: "PUT",
+            const res = await fetch("http://localhost:8080/api/books", {
+                method: "POST",
                 headers: {
                     "Content-Type": "application/json",
+
                 },
+                credentials: "include",   // 🔥 세션 쿠키(로그인 정보) 같이 보내기
                 body: JSON.stringify(apiPayload),
             });
 
             if (res.ok) {
-                const data = await res.json().catch(() => null); // { status, message } 예상
-                if (!data || data.status === "success") {
-                    apiSuccess = true;
-                    console.log("도서 수정 API 성공:", data);
-                } else {
-                    console.warn("도서 수정 API 응답 실패:", data);
-                }
+                updatedFromServer = await res.json().catch(() => null);
+                apiSuccess = true;
+                console.log("도서 수정 API 성공:", updatedFromServer);
             } else {
                 console.warn("도서 수정 API HTTP 오류:", res.status);
             }
@@ -112,16 +117,16 @@ function BookUpdatePage({ bookList, setBookList }) {
             console.warn("도서 수정 API 호출 실패(서버 미구동/연결 문제):", err);
         }
 
-        // 📦 프론트에서 쓰는 전체 책 정보
+        // 📦 프론트에서 쓰는 전체 책 정보 (UI 상태용)
         const updatedBook = {
             id,
-            title: title.trim(),
-            author: author.trim(),
-            description: description.trim(),
-            coverImage,
+            title: updatedFromServer?.title ?? title.trim(),
+            author: updatedFromServer?.author ?? author.trim(),
+            description: updatedFromServer?.content ?? description.trim(),
+            coverImage: updatedFromServer?.imgUrl ?? coverImage,
             coverImageId,
             reg_time: regTime,
-            update_time: apiPayload.update_date,
+            update_time: updateDate,
             owner: fromState.owner,
         };
 
@@ -138,7 +143,8 @@ function BookUpdatePage({ bookList, setBookList }) {
             alert("수정 완료! (서버에도 반영됨)");
         } else {
             alert(
-                "수정 완료! (지금은 서버가 없어서 브라우저 안에서만 반영됩니다)"
+                "수정이 화면에는 반영되었지만, 서버 저장에 문제가 있을 수 있어요.\n" +
+                "백엔드 서버 상태를 한 번 확인해 주세요."
             );
         }
 

@@ -1,7 +1,10 @@
 import React, { useState } from "react";
 import { Box, Typography, IconButton } from "@mui/material";
-import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
-import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
+import {
+    ArrowBackIosNew as ArrowBackIosNewIcon,
+    ArrowForwardIos as ArrowForwardIosIcon,
+} from "@mui/icons-material";
+
 import { useNavigate } from "react-router-dom";
 import BookCard from "./BookCard";
 

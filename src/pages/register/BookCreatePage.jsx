@@ -12,6 +12,8 @@ import {
     CardMedia,
 } from "@mui/material";
 
+const API_BASE_URL = "http://localhost:8080"; // 스프링 서버 주소 (포트 맞게 조정)
+
 function formatDateToYMD(date = new Date()) {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -23,7 +25,7 @@ function BookCreatePage({ setBookList }) {
     const navigate = useNavigate();
     const location = useLocation();
 
-    // ✅ 현재 로그인한 사용자
+    // ✅ 현재 로그인한 사용자 (로컬스토리지 기반)
     const currentUser = localStorage.getItem("currentUser");
 
     // ✅ AiImagePage에서 돌아올 때 넘겨준 값들 (제목/저자/내용/ID)
@@ -34,7 +36,7 @@ function BookCreatePage({ setBookList }) {
     const initialBookId =
         location.state?.bookId ||
         location.state?.id ||
-        Date.now(); // 임시 id
+        Date.now(); // 프론트에서만 쓰는 임시 id
 
     const [title, setTitle] = useState(initialTitle);
     const [author, setAuthor] = useState(initialAuthor);
@@ -78,7 +80,7 @@ function BookCreatePage({ setBookList }) {
             return;
         }
 
-        // ✅ 프론트에서 쓰는 구조 (지금까지 써온 payload)
+        // ✅ 프론트에서 관리하는 구조 (UI용)
         const payload = {
             id: bookId,
             title: title.trim(),
@@ -88,60 +90,84 @@ function BookCreatePage({ setBookList }) {
             coverImageId,
             reg_time: formatDateToYMD(),
             update_time: null,
-            owner: currentUser, // ✅ 이 책의 작성자
+            owner: currentUser,
         };
 
-        // ✅ 백엔드 스펙에 맞는 구조 (POST /api/books)
+        // ✅ 백엔드 Book 엔티티에 맞춰 보낼 JSON
+        // Book: title, author, content, imgUrl (추정)
         const apiPayload = {
             title: payload.title,
             author: payload.author,
             content: payload.description,
-            img_url: payload.coverImage,
-            reg_date: payload.reg_time,
+            imgUrl: payload.coverImage,
+            // regDate 같은 건 엔티티에서 자동 처리해도 되고,
+            // 필드가 있으면 추가해서 맞춰도 됨.
         };
 
         let apiSuccess = false;
+        let savedBookFromServer = null;
 
         try {
-            const res = await fetch("/api/books", {
+            const res = await fetch("http://localhost:8080/api/books", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
+
                 },
+                credentials: "include",   // 🔥 세션 쿠키(로그인 정보) 같이 보내기
                 body: JSON.stringify(apiPayload),
             });
 
+
+
             if (res.ok) {
-                const data = await res.json().catch(() => null); // { status, message } 예상
-                if (!data || data.status === "success") {
-                    apiSuccess = true;
-                    console.log("도서 등록 API 성공:", data);
-                } else {
-                    console.warn("도서 등록 API 응답 실패:", data);
-                }
+                savedBookFromServer = await res.json();
+                apiSuccess = true;
+                console.log("도서 등록 API 성공:", savedBookFromServer);
             } else {
                 console.warn("도서 등록 API HTTP 오류:", res.status);
             }
         } catch (error) {
-            console.warn("도서 등록 API 호출 실패(서버 미구동/연결 문제):", error);
+            console.warn("도서 등록 API 호출 실패:", error);
         }
 
-        // ✅ 백엔드 성공 여부와 상관없이, 프론트에서는 저장 & 이동
         console.log("도서 등록 데이터(프론트):", payload);
 
+        // ✅ 프론트 리스트 상태 업데이트 (서버 응답 있으면 우선 사용)
         if (typeof setBookList === "function") {
-            setBookList((prev) => [...prev, payload]);
+            if (savedBookFromServer) {
+                const mapped = {
+                    id:
+                        savedBookFromServer.bookId ??
+                        savedBookFromServer.id ??
+                        bookId,
+                    title: savedBookFromServer.title ?? payload.title,
+                    author: savedBookFromServer.author ?? payload.author,
+                    description: savedBookFromServer.content ?? payload.description,
+                    coverImage: savedBookFromServer.imgUrl ?? payload.coverImage,
+                    coverImageId: payload.coverImageId,
+                    reg_time: payload.reg_time,
+                    update_time: payload.update_time,
+                    owner: payload.owner,
+                };
+
+                setBookList((prev) => [...prev, mapped]);
+            } else {
+                // 서버 저장 실패했을 때도 최소한 UI에서는 보이게
+                setBookList((prev) => [...prev, payload]);
+            }
         }
 
         if (apiSuccess) {
-            alert("도서 등록이 완료되었습니다! (서버에도 저장됨)");
+            alert("도서 등록이 완료되었습니다! (서버에 저장됨)");
         } else {
             alert(
-                "도서 등록이 완료되었습니다! (지금은 서버가 없어서 브라우저 안에만 저장됩니다)"
+                "도서가 화면에는 등록되었지만, 서버 저장에 문제가 있을 수 있어요.\n" +
+                "백엔드 서버 상태를 한 번 확인해 주세요."
             );
         }
 
-        // 마이페이지로 이동 (state 안 넘겨도 됨)
+        // 마이페이지로 이동
         navigate("/mypage");
     };
 

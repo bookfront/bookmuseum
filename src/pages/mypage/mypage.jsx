@@ -1,148 +1,104 @@
 // src/pages/mypage/MyPage.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 
-export default function MyPage() {
+export default function MyPage({ bookList, setBookList }) {
     const navigate = useNavigate();
 
-    // 🔹 현재 로그인한 사용자 정보 (PK 포함)
-    const currentUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
-    const memberId = currentUser.id;   // ⭐ 반드시 PK 사용
+    // 🔹 지금 로그인한 사용자
+    const currentUser = localStorage.getItem("currentUser");
 
-    // 🔹 백엔드에서 가져온 데이터
-    const [myBooks, setMyBooks] = useState([]);
-    const [likedBooks, setLikedBooks] = useState([]);
+    // 🔹 전역 bookList 중에서 현재 사용자(owner)가 쓴 책만 필터
+    const myBooks = bookList.filter((b) => b.owner === currentUser);
 
-    // 🔹 API 기본 주소
-    const API_BASE = "http://localhost:8080";
 
-    // =====================================================
-    // 📌 내가 등록한 도서 조회 API
-    // =====================================================
-    const loadMyBooks = async () => {
-        try {
-            const res = await axios.get(`${API_BASE}/api/mypage`, {
-                params: { memberId },
-                withCredentials: true,
-            });
-            setMyBooks(res.data.book);
-        } catch (err) {
-            console.error("내 도서 조회 오류:", err);
-        }
+    //  좋아요 도서
+    const [likedBooks, setLikedBooks] = useState([
+        { id: 1, title: "책 제목", liked: true },
+        { id: 2, title: "책 제목", liked: true },
+        { id: 3, title: "책 제목", liked: true },
+        { id: 4, title: "책 제목", liked: true },
+    ]);
+
+    // ❤️ 좋아요 토글 기능
+    const toggleLike = (id) => {
+        setLikedBooks((prev) =>
+            prev.map((b) =>
+                b.id === id ? { ...b, liked: !b.liked } : b
+            )
+        );
     };
-
-    // =====================================================
-    // 📌 좋아요한 도서 조회 API
-    // =====================================================
-    const loadLikedBooks = async () => {
-        try {
-            const res = await axios.get(`${API_BASE}/api/mypage/liked`, {
-                params: { memberId },
-                withCredentials: true,
-            });
-            setLikedBooks(res.data.book);
-        } catch (err) {
-            console.error("좋아요 도서 조회 오류:", err);
-        }
-    };
-
-    // =====================================================
-    // 📌 등록한 도서 삭제 API
-    // =====================================================
-    const handleDelete = async (id) => {
-        if (!window.confirm("정말 삭제하시겠습니까?")) return;
-
-        try {
-            await axios.delete(`${API_BASE}/api/mypage/${id}`, {
-                data: { book_id: id },
-                withCredentials: true,
-            });
-
-            alert("삭제 완료");
-            loadMyBooks();
-        } catch (err) {
-            console.error("삭제 실패:", err);
-            alert("삭제 실패");
-        }
-    };
-
-    // =====================================================
-    // 📌 페이지 로드시 API 호출
-    // =====================================================
-    useEffect(() => {
-        if (!memberId) {
-            console.error("⚠ memberId 없음. 로그인 정보 확인 필요.");
-            return;
-        }
-        loadMyBooks();
-        loadLikedBooks();
-    }, []);
-
-    // =====================================================
-    // 📌 페이지 이동 함수들
-    // =====================================================
-    const goToRegister = () => navigate("/register");
-
-    const handleGoDetail = (book) => {
+    // ⭐ 좋아요한 도서 상세 이동
+    const handleGoLikedDetail = (book) => {
         navigate("/detail", {
             state: {
                 book: {
-                    id: book.book_id,
+                    id: book.id,
                     title: book.title,
-                    author: book.author,
-                    description: book.content,
-                    image: book.img_url,
+                    author: "",
+                    description: "",
+                    image: "",
+                },
+            },
+        });
+    };
+    // ⭐ 도서 등록 페이지로 이동
+    const goToRegister = () => {
+        navigate("/register");
+    };
+
+    // ⭐ 상세페이지로 이동 (이미지 클릭 시)
+    const handleGoDetail = (id) => {
+        const targetBook = myBooks.find((b) => b.id === id);
+        if (!targetBook) return;
+
+        navigate("/detail", {
+            state: {
+                book: {
+                    id: targetBook.id,
+                    title: targetBook.title,
+                    author: targetBook.author,
+                    description: targetBook.description,
+                    image: targetBook.coverImage,   // 🔥 전역 bookList에서는 coverImage 필드 사용
+                    imageId: targetBook.coverImageId,
+                    reg_time: targetBook.reg_time,
+                    update_time: targetBook.update_time,
                 },
             },
         });
     };
 
-    const handleEdit = (book) => {
-        navigate("/update", { state: book });
+    // ⭐ 수정 버튼 → 수정 페이지로 이동
+    const handleEdit = (id) => {
+        const targetBook = myBooks.find((b) => b.id === id);
+        if (!targetBook) return;
+
+        // 전역 bookList에 이미 모든 정보가 있으니까 그대로 넘겨줌
+        navigate("/update", {
+            state: targetBook,
+        });
     };
 
-    // =====================================================
-    // 📌 좋아요 토글 API
-    // =====================================================
-    const toggleLike = async (bookId) => {
-        try {
-            const res = await axios.patch(
-                `${API_BASE}/api/books/${bookId}`,
-                { member: { id: memberId } },  // ⭐ PK 사용
-                { withCredentials: true }
-            );
+    // ⭐ 삭제 버튼 → 전역 bookList에서 삭제
+    const handleDelete = (id) => {
+        if (!window.confirm("정말 삭제하시겠습니까?")) return;
 
-            const status = res.data;
-
-            setLikedBooks((prev) =>
-                prev.map((b) =>
-                    b.book_id === bookId
-                        ? { ...b, liked: status === "liked" }
-                        : b
-                )
-            );
-
-            loadLikedBooks();
-        } catch (err) {
-            console.error("좋아요 토글 실패:", err);
-        }
+        setBookList((prev) => prev.filter((book) => book.id !== id));
     };
 
-    // =====================================================
-    // 📌 UI
-    // =====================================================
     return (
         <div style={styles.container}>
+            {/* 헤더 영역: 제목 + (아래 오른쪽 버튼) */}
             <h3 style={styles.title}>마이페이지</h3>
 
+            {/* 제목 바로 아래, 오른쪽 정렬된 버튼 */}
             <div style={styles.registerRow}>
                 <button style={styles.registerBtn} onClick={goToRegister}>
                     + 도서 등록하기
                 </button>
             </div>
 
-            {/* 내가 등록한 도서 */}
+            {/* 등록한 도서 (전역 bookList 기반*/}
             <section style={styles.section}>
                 <h3 style={styles.subTitle}>등록한 도서</h3>
                 <div style={styles.bookGrid}>
@@ -151,15 +107,14 @@ export default function MyPage() {
                     )}
 
                     {myBooks.map((book) => (
-                        <div
-                            key={book.book_id}
-                            style={styles.card}
-                            onClick={() => handleGoDetail(book)}
-                        >
-                            <div style={styles.imageBox}>
-                                {book.img_url && (
+                        <div key={book.id} style={styles.card} onClick={() => handleGoDetail(book.id)}>
+                            <div
+                                style={{ ...styles.imageBox, cursor: "pointer" }}
+                                onClick={() => handleGoDetail(book.id)}
+                            >
+                                {book.coverImage && (
                                     <img
-                                        src={book.img_url}
+                                        src={book.coverImage}
                                         alt={book.title}
                                         style={{
                                             width: "100%",
@@ -175,21 +130,20 @@ export default function MyPage() {
                                 <p style={styles.bookTitle}>{book.title}</p>
 
                                 <div style={styles.actionRow}>
-                                    <button
+                                      <button
                                         style={styles.editBtn}
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            handleEdit(book);
+                                            handleEdit(book.id);
                                         }}
                                     >
                                         수정
                                     </button>
-
                                     <button
                                         style={styles.deleteBtn}
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            handleDelete(book.book_id);
+                                            handleDelete(book.id);
                                         }}
                                     >
                                         삭제
@@ -201,27 +155,28 @@ export default function MyPage() {
                 </div>
             </section>
 
-            {/* 좋아요한 도서 */}
+            {/* 좋아요 누른 도서 */}            
             <section style={styles.section}>
                 <h3 style={styles.subTitle}>좋아요 누른 도서</h3>
-
                 <div style={styles.bookGrid}>
                     {likedBooks.map((book) => (
-                        <div
-                            key={book.book_id}
+                        <div 
+                            key={book.id} 
                             style={styles.card}
-                            onClick={() => handleGoDetail(book)}
+                            onClick={() => handleGoLikedDetail(book.id)}   // ⭐ 카드 클릭 → 상세 이동
                         >
+
                             <div style={styles.imageBox}></div>
 
                             <div style={styles.rowBetween}>
                                 <p style={styles.bookTitle}>{book.title}</p>
 
+                                {/* ❤️ 하트 클릭 시 상세 이동 막기 */}
                                 <div
                                     style={styles.likeIconBox}
                                     onClick={(e) => {
-                                        e.stopPropagation();
-                                        toggleLike(book.book_id);
+                                        e.stopPropagation();    // ⭐ 상세 이동 막기
+                                        toggleLike(book.id);
                                     }}
                                 >
                                     <img
@@ -243,9 +198,6 @@ export default function MyPage() {
     );
 }
 
-// -------------------------
-// 스타일 (그대로 유지)
-// -------------------------
 const styles = {
     container: {
         width: "1400px",
@@ -289,8 +241,7 @@ const styles = {
         borderRadius: "8px",
         padding: "16px",
         background: "#fff",
-        marginLeft: "50px",
-        cursor: "pointer",
+        marginLeft:"50px"
     },
     imageBox: {
         width: "100%",
@@ -324,8 +275,8 @@ const styles = {
         cursor: "pointer",
     },
     likeIcon: {
-        width: "24px",
-        height: "24px",
+        width: "24px",    // 고정!
+        height: "24px",   // 고정!
         cursor: "pointer",
         objectFit: "contain",
     },
