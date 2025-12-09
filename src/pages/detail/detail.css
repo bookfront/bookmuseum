@@ -15,7 +15,7 @@
 .detail-box {
   display: flex;
   gap: 40px;
-  width: 90%;
+  width: 80%;
   max-width: 1100px;
   padding: 30px;
   background: white;
@@ -26,13 +26,12 @@
 
 /* 이미지 박스 */
 .detail-image-wrapper {
-  width: 300px;
+  width: 400px;
   height: 450px;
   display: flex;
   justify-content: center;
   align-items: center;
   overflow: hidden;
-  margin-top: 50px;
   margin-left: 30px;
 }
 
@@ -40,27 +39,27 @@
   height: 100%;
 }
 
+.book-title {
+  font-size: 25px;
+}
 /* 오른쪽 내용 */
 .detail-content {
   flex: 1;
   white-space: pre-wrap;
   margin-left: 90px;
+
+}
+.book-description {
   font-size: 15px;
 }
 
-/* 제목 + 날짜 */
-.detail-header {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 14px;
-  font-size: 18px;
-}
 
 .book-date-wrapper {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-right: 40px;
+  font-size: 13px;
+  margin-top: -15px;
+  color: #666666;
 }
 
 .book-date-icon {

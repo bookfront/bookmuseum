@@ -25,7 +25,7 @@ function Join() {
 
         try {
             const res = await fetch(`/api/member/check/${id}`, {
-                method: "POST", // 너가 백엔드를 이렇게 설정했으므로 유지
+                method: "POST",
             });
 
             const data = await res.json();
@@ -66,9 +66,9 @@ function Join() {
             return;
         }
 
-        // ⭐ 반드시 loginId 로 보내야 백엔드와 매칭됨!!!
+        // ⭐ 백엔드로 보낼 데이터 — pwCheck 절대 포함 X
         const payload = {
-            loginId: id,
+            loginId: id,  // ← 백엔드 필드명과 일치
             pass: pw,
             name: name,
         };

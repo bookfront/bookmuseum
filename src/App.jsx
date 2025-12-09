@@ -24,43 +24,7 @@ function App() {
     // 🔥 모든 페이지가 공유하는 도서 리스트
     const [bookList, setBookList] = useState([]);
 
-    // ✅ 앱 처음 켜질 때 서버에서 도서 목록 가져오기
-    useEffect(() => {
-        const fetchBooks = async () => {
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/books`, {
-                    method: "GET",
-                    credentials: "include", // JWT 쿠키 쓰면 유지
-                });
 
-                if (!res.ok) {
-                    console.warn("도서 목록 조회 실패:", res.status);
-                    return;
-                }
-
-                const data = await res.json(); // List<BookDTO>
-                // BookDTO: { bookId, title, author, viewCnt, imgUrl }
-
-                const mapped = data.map((b) => ({
-                    id: b.bookId,
-                    title: b.title,
-                    author: b.author,
-                    description: "", // DTO에 내용이 없으면 일단 공백
-                    coverImage: b.imgUrl,
-                    coverImageId: null,
-                    reg_time: null,
-                    update_time: null,
-                    owner: b.ownerLoginId,
-                }));
-
-                setBookList(mapped);
-            } catch (err) {
-                console.error("도서 목록 조회 중 오류:", err);
-            }
-        };
-
-        fetchBooks();
-    }, []);
 
     return (
         <BrowserRouter>

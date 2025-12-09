@@ -38,7 +38,7 @@ export default function PopularBooksSection({ books, onToggleLike }) {
                     <ArrowBackIosNewIcon fontSize="small" />
                 </IconButton>
 
-                <Box sx={{ display: "flex", gap: 3, flex: 1, overflow: "hidden" }}>
+                <Box sx={{ display: "flex", gap: 3, flex: 1, overflow: "hidden", ml: 5 }}>
                     {visibleBooks.map((book, index) => (
                         <Box
                             key={book.id}

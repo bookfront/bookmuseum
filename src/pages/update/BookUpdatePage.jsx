@@ -96,13 +96,12 @@ function BookUpdatePage({ bookList, setBookList }) {
         const updateDate = formatDateToYMD();
 
         try {
-            const res = await fetch("http://localhost:8080/api/books", {
-                method: "POST",
+            const res = await fetch(`${API_BASE_URL}/api/books/${id}`, {
+                method: "PUT",               // 🔥 수정이니까 PUT
                 headers: {
                     "Content-Type": "application/json",
-
                 },
-                credentials: "include",   // 🔥 세션 쿠키(로그인 정보) 같이 보내기
+                credentials: "include",      // 🔥 JWT 쿠키 같이 보내기
                 body: JSON.stringify(apiPayload),
             });
 
@@ -116,6 +115,7 @@ function BookUpdatePage({ bookList, setBookList }) {
         } catch (err) {
             console.warn("도서 수정 API 호출 실패(서버 미구동/연결 문제):", err);
         }
+
 
         // 📦 프론트에서 쓰는 전체 책 정보 (UI 상태용)
         const updatedBook = {

@@ -1,3 +1,4 @@
+// src/pages/login/index.jsx
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "./login.css";
@@ -10,22 +11,15 @@ function Login({ setIsLoggedIn }) {
     const [pw, setPw] = useState("");
     const [error, setError] = useState("");
 
-    // ⭐ 실제 백엔드 로그인 API 호출로 변경
     const handleLogin = async () => {
         setError("");
 
-        const payload = {
-            loginId: id,
-            pass: pw,
-        };
+        const payload = { loginId: id, pass: pw };
 
         try {
             const res = await fetch("/api/member/login", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                credentials: "include",
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload),
             });
 
@@ -36,19 +30,17 @@ function Login({ setIsLoggedIn }) {
                 return;
             }
 
-            // ⭐ 로그인 성공 → currentUser 저장
-            const loginUser = {
-                loginId: id,
-            };
+            localStorage.setItem(
+                "currentUser",
+                JSON.stringify({ loginId: id }) // ⭐ loginId 로 저장
+            );
 
-            localStorage.setItem("currentUser", JSON.stringify(loginUser));
             setIsLoggedIn(true);
-            alert("로그인이 완료되었습니다!");
-
+            alert("로그인 완료!");
             navigate("/");
+
         } catch (err) {
-            console.error(err);
-            setError("서버와 연결할 수 없습니다.");
+            setError("서버 연결 실패");
         }
     };
 
@@ -57,13 +49,10 @@ function Login({ setIsLoggedIn }) {
             <div className="login-box">
 
                 <h3 className="login-title">아이디</h3>
-                <input
-                    className="login-input"
-                    type="text"
-                    placeholder="아이디를 입력해주세요."
+                <input className="login-input"
                     value={id}
                     onChange={(e) => setId(e.target.value)}
-                />
+                    placeholder="아이디를 입력하세요" />
 
                 <h3 className="login-title">비밀번호</h3>
 
@@ -71,15 +60,14 @@ function Login({ setIsLoggedIn }) {
                     <input
                         className="login-input password-input"
                         type={showPassword ? "text" : "password"}
-                        placeholder="비밀번호를 입력해주세요."
                         value={pw}
                         onChange={(e) => setPw(e.target.value)}
+                        placeholder="비밀번호 입력"
                     />
                     <img
                         src={showPassword ? "/open_eye.png" : "/close_eye.png"}
-                        alt="toggle"
-                        className="password-icon"
                         onClick={() => setShowPassword(!showPassword)}
+                        className="password-icon"
                     />
                 </div>
 
@@ -89,9 +77,7 @@ function Login({ setIsLoggedIn }) {
                     로그인
                 </button>
 
-                <Link to="/join" className="join-link">
-                    회원가입
-                </Link>
+                <Link to="/join" className="join-link">회원가입</Link>
             </div>
         </div>
     );
