@@ -54,12 +54,12 @@ export default function MyPage() {
     // =====================================================
     // 📌 등록한 도서 삭제 API
     // =====================================================
-    const handleDelete = async (id) => {
+    const handleDelete = async (book) => {
         if (!window.confirm("정말 삭제하시겠습니까?")) return;
 
         try {
-            await axios.delete(`${API_BASE}/api/mypage/${id}`, {
-                data: { book_id: id },
+            await axios.delete(`${API_BASE}/api/mypage/${book.bookId}`, {
+                data: { bookId: book.bookId },
                 withCredentials: true,
             });
 
@@ -96,7 +96,7 @@ export default function MyPage() {
                     id: book.bookId,
                     title: book.title,
                     author: book.author,
-                    content: book.content,
+                    description: book.description,
                     imgUrl: book.imgUrl,
                 },
             },
@@ -106,12 +106,12 @@ export default function MyPage() {
     const handleEdit = (book) => {
         navigate("/update", {
             state: {
-                id: book.bookId,          // PK
+                bookId: book.bookId,
                 title: book.title,
                 author: book.author,
-                description: book.content, // UpdatePage가 요구하는 필드명
-                coverImage: book.imgUrl,   // UpdatePage가 요구하는 필드명
-                coverImageId: book.imageId, // 있으면 전달 (없으면 undefined)
+                description: book.description,  // ★ 내용 전달
+                coverImage: book.imgUrl,    // ★ 이미지 전달
+                coverImageId: book.imageId, // 있으면 전달
                 reg_time: book.reg_time,
                 update_time: book.update_time,
             },
@@ -207,7 +207,7 @@ export default function MyPage() {
                                         style={styles.deleteBtn}
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            handleDelete(book.book_id);
+                                            handleDelete(book);
                                         }}
                                     >
                                         삭제
