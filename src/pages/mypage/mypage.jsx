@@ -103,10 +103,21 @@ export default function MyPage() {
         });
     };
 
-
     const handleEdit = (book) => {
-        navigate("/update", { state: book });
+        navigate("/update", {
+            state: {
+                id: book.bookId,          // PK
+                title: book.title,
+                author: book.author,
+                description: book.content, // UpdatePage가 요구하는 필드명
+                coverImage: book.imgUrl,   // UpdatePage가 요구하는 필드명
+                coverImageId: book.imageId, // 있으면 전달 (없으면 undefined)
+                reg_time: book.reg_time,
+                update_time: book.update_time,
+            },
+        });
     };
+
 
     // =====================================================
     // 📌 좋아요 토글 API
