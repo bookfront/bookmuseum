@@ -26,7 +26,7 @@ function Login({ setIsLoggedIn }) {
             const data = await res.json();
 
             if (data.status !== "success") {
-                setError(data.message || "로그인 실패");
+                setError(data.message || "로그인을 실패했습니다.");
                 return;
             }
 
@@ -36,7 +36,7 @@ function Login({ setIsLoggedIn }) {
             );
 
             setIsLoggedIn(true);
-            alert("로그인 완료!");
+            alert("로그인을 성공했습니다.");
             navigate("/");
 
         } catch (err) {
@@ -52,7 +52,7 @@ function Login({ setIsLoggedIn }) {
                 <input className="login-input"
                     value={id}
                     onChange={(e) => setId(e.target.value)}
-                    placeholder="아이디를 입력하세요" />
+                    placeholder="아이디를 입력하세요." />
 
                 <h3 className="login-title">비밀번호</h3>
 
@@ -62,7 +62,7 @@ function Login({ setIsLoggedIn }) {
                         type={showPassword ? "text" : "password"}
                         value={pw}
                         onChange={(e) => setPw(e.target.value)}
-                        placeholder="비밀번호 입력"
+                        placeholder="비밀번호를 입력하세요."
                     />
                     <img
                         src={showPassword ? "/open_eye.png" : "/close_eye.png"}

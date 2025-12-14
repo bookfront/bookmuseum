@@ -37,12 +37,12 @@ function Join() {
                 setIdCheckMessage("사용 가능한 아이디입니다.");
                 setIsChecked(true);
             } else {
-                setIdCheckMessage(data.message || "확인 중 오류 발생");
+                setIdCheckMessage(data.message || "확인 중 오류 발생했습니다.");
                 setIsChecked(false);
             }
         } catch (err) {
             console.error(err);
-            setIdCheckMessage("서버 연결 오류");
+            setIdCheckMessage("서버 연결 오류입니다.");
         }
     };
 
@@ -85,10 +85,10 @@ function Join() {
             const data = await res.json();
 
             if (data.status === "success") {
-                alert("회원가입이 완료되었습니다!");
+                alert("회원가입이 완료되었습니다.");
                 navigate("/login");
             } else {
-                setInputError(data.message || "회원가입 실패");
+                setInputError(data.message || "회원가입을 실패했습니다.");
             }
         } catch (err) {
             console.error(err);
@@ -122,7 +122,7 @@ function Join() {
                 <h3 className="join-title">비밀번호</h3>
                 <input
                     className="join-input"
-                    type="password"
+                    type="text"
                     placeholder="비밀번호를 입력해주세요."
                     value={pw}
                     onChange={(e) => setPw(e.target.value)}
