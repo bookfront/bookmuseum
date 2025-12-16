@@ -14,6 +14,10 @@ export default function HomePage() {
     const [popularBooks, setPopularBooks] = useState([]);
     const [bookList, setBookList] = useState([]);
 
+    const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+    const currentLoginId = currentUser?.loginId;
+    const isLoggedIn = !!currentLoginId;
+
     const normalizeBook = (b) => ({
         id: b.bookId,            // 정확한 키로 변경
         title: b.title,
@@ -45,6 +49,11 @@ export default function HomePage() {
     }, []);
 
     const toggleLike = (id) => {
+        if (!isLoggedIn) {
+            console.warn("로그인 안 된 사용자 좋아요 차단");
+            return;
+        }
+
         setPopularBooks((prev) =>
             prev.map((book) =>
                 book.id === id ? { ...book, liked: !book.liked } : book
@@ -57,8 +66,11 @@ export default function HomePage() {
             )
         );
 
-        updateBookLike(id).catch((err) => console.error("❌ 좋아요 실패:", err));
+        updateBookLike(id).catch((err) =>
+            console.error("❌ 좋아요 실패:", err)
+        );
     };
+
 
     return (
         <Box sx={{ bgcolor: "#f5f5f5", minHeight: "100vh" }}>
@@ -73,11 +85,11 @@ export default function HomePage() {
 
             <Container maxWidth="lg">
                 <Box sx={{ mt: 6 }}>
-                    <PopularBooksSection books={popularBooks} onToggleLike={toggleLike} />
+                    <PopularBooksSection books={popularBooks} onToggleLike={toggleLike} isLoggedIn={isLoggedIn} />
                 </Box>
 
                 <Box sx={{ mt: 15 }}>
-                    <BooksListSection books={bookList} onToggleLike={toggleLike} />
+                    <BooksListSection books={bookList} onToggleLike={toggleLike} isLoggedIn={isLoggedIn} />
                 </Box>
             </Container>
         </Box>

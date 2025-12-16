@@ -3,7 +3,7 @@ import { Box, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import BookCard from "./BookCard";
 
-export default function BooksListSection({ books, onToggleLike }) {
+export default function BooksListSection({ books, onToggleLike, isLoggedIn }) {
     const navigate = useNavigate();
 
     const handleGoDetail = (book) => {
@@ -35,7 +35,9 @@ export default function BooksListSection({ books, onToggleLike }) {
                             author={book.author}
                             liked={book.liked}
                             imageUrl={book.coverImage}
-                            onToggleLike={() => onToggleLike(book.id)}  // 🔥 핵심 수정
+                            //onToggleLike={() => onToggleLike(book.id)}
+                            onToggleLike={onToggleLike}
+                            isLoggedIn={isLoggedIn}
                         />
                     </Box>
                 ))}

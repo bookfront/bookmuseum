@@ -11,6 +11,7 @@ export default function BookCard({
                                      liked,
                                      onToggleLike,
                                      imageUrl,
+                                     isLoggedIn,
                                  }) {
 
     const truncate = (text, max) =>
@@ -67,19 +68,22 @@ export default function BookCard({
                         {truncate(title, 10)}
                     </Typography>
 
-                    <IconButton
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onToggleLike(id); // 여기 id 전달됨
-                        }}
-                        sx={{ p: 0 }}
-                    >
-                        <img
-                            src={liked ? HeartFill : HeartLine}
-                            width={22}
-                            height={22}
-                        />
-                    </IconButton>
+                    {isLoggedIn && (
+                        <IconButton
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onToggleLike(id);
+                            }}
+                            sx={{ p: 0 }}
+                        >
+                            <img
+                                src={liked ? HeartFill : HeartLine}
+                                width={22}
+                                height={22}
+                                alt="like"
+                            />
+                        </IconButton>
+                    )}
                 </Box>
 
                 <Typography

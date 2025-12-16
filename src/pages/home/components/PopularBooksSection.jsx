@@ -10,7 +10,7 @@ import BookCard from "./BookCard";
 
 const VISIBLE_COUNT = 4;
 
-export default function PopularBooksSection({ books, onToggleLike }) {
+export default function PopularBooksSection({ books, onToggleLike, isLoggedIn }) {
     const navigate = useNavigate();
 
     const limitedBooks = books.slice(0, 8);
@@ -52,11 +52,9 @@ export default function PopularBooksSection({ books, onToggleLike }) {
                                 liked={book.liked}
                                 rank={currentIndex + index + 1}
                                 imageUrl={book.coverImage}
-                                onToggleLike={() => {
-                                    console.log("🔥 클릭된 book.id:", book.id);
-                                    onToggleLike(book.id);}
-                                }
-
+                                //onToggleLike={() => {onToggleLike(book.id);}}
+                                onToggleLike={onToggleLike}
+                                isLoggedIn={isLoggedIn}
                             />
                         </Box>
                     ))}
