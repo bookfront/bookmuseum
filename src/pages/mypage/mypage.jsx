@@ -182,7 +182,7 @@ export default function MyPage() {
                                             width: "100%",
                                             height: "100%",
                                             objectFit: "cover",
-                                            borderRadius: "6px",
+                                            /*borderRadius: "6px",*/
                                         }}
                                     />
                                 )}
@@ -242,7 +242,7 @@ export default function MyPage() {
                                             width: "100%",
                                             height: "100%",
                                             objectFit: "cover",
-                                            borderRadius: "6px",
+                                            /*borderRadius: "6px",*/
                                         }}
                                     />
                                 )}
@@ -356,7 +356,7 @@ const styles = {
         height: 260,
         border: "1px solid #ddd",
         borderRadius: 8,
-        backgroundColor: "#fafafa",
+        backgroundColor: "#ffffffff",
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
@@ -396,8 +396,6 @@ const styles = {
     },
     textArea: {
         padding: 16,
-        height: 76,
- 
         flexDirection: "column",
         justifyContent: "center",
     },
@@ -414,7 +412,7 @@ const styles = {
         margin: 0,
         fontSize: 12,
         color: "#777",
-        marginTop: 4,
+        marginTop: 10,
         marginBottom: 0,
         lineHeight: "1.2",
         whiteSpace: "nowrap",
