@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
+
 export default function MyPage() {
     const navigate = useNavigate();
 
@@ -186,31 +187,35 @@ export default function MyPage() {
                                     />
                                 )}
                             </div>
+                            <div style={styles.textArea}>
+                                <div style={styles.titleRow}>
+                                    <div style={styles.bookTitle}>{book.title}</div>
 
-                            <div style={styles.rowBetween}>
-                                <p style={styles.bookTitle}>{book.title}</p>
+                                    <div style={styles.actionRow}>
+                                        <button
+                                            style={styles.editBtn}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleEdit(book);
+                                            }}
+                                        >
+                                            수정
+                                        </button>
 
-                                <div style={styles.actionRow}>
-                                    <button
-                                        style={styles.editBtn}
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleEdit(book);
-                                        }}
-                                    >
-                                        수정
-                                    </button>
-
-                                    <button
-                                        style={styles.deleteBtn}
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleDelete(book);
-                                        }}
-                                    >
-                                        삭제
-                                    </button>
+                                        <button
+                                            style={styles.deleteBtn}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleDelete(book);
+                                            }}
+                                        >
+                                            삭제
+                                        </button>
+                                    </div>
                                 </div>
+
+                                {/* 작가 이름 */}
+                                <div style={styles.bookAuthor}>{book.author}</div>
                             </div>
                         </div>
                     ))}
@@ -242,28 +247,40 @@ export default function MyPage() {
                                     />
                                 )}
                             </div>
-
-                            <div style={styles.rowBetween}>
-                                <p style={styles.bookTitle}>{book.title}</p>
-
-                                <div
-                                    style={styles.likeIconBox}
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        toggleLike(book.bookId);
-                                    }}
-                                >
-                                    <img
-                                        src={
-                                            book.liked
-                                                ? "/heart-line.png"
-                                                : "/heart-fill.png"
-                                        }
-                                        alt="heart"
-                                        style={styles.likeIcon}
-                                    />
+                            <div style={styles.textArea}>
+                                <div style={styles.titleRow}>
+                                    <p style={styles.bookTitle}>{book.title}</p>
+                                    <div
+                                        style={styles.likeIconBox}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            toggleLike(book.bookId);
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            e.currentTarget.style.transform = "scale(1.15)";
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.transform = "scale(1)";
+                                        }}
+                                        onMouseDown={(e) => {
+                                            e.currentTarget.style.transform = "scale(0.95)";
+                                        }}
+                                        onMouseUp={(e) => {
+                                            e.currentTarget.style.transform = "scale(1.15)";
+                                        }}
+                                    >
+                                        <img
+                                            src={book.liked ? "/heart-line.png" : "/heart-fill.png"}
+                                            alt="heart"
+                                            style={styles.likeIcon}
+                                        />
+                                    </div>
                                 </div>
+
+                                {/* 작가 이름 */}
+                                <p style={styles.bookAuthor}>{book.author}</p>
                             </div>
+
                         </div>
                     ))}
                 </div>
@@ -312,55 +329,96 @@ const styles = {
         gap: "24px",
         flexWrap: "wrap",
     },
-    card: {
-        width: "180px",
-        border: "1px solid ",
-        borderRadius: "8px",
-        padding: "16px",
-        background: "#fff",
-        marginLeft: "50px",
+    actionRow: {
+        display: "flex",
+        gap: "6px",
+        fontSize: "12px",
+        lineHeight: "1",
+    },
+    editBtn: {
+        padding: 0,
+        border: "none",
+        background: "transparent",
+        color: "#0070f3",
         cursor: "pointer",
+        fontSize: 12,
+    },
+    deleteBtn: {
+        padding: 0,
+        border: "none",
+        background: "transparent",
+        color: "red",
+        cursor: "pointer",
+        fontSize: 12,
+    },
+    card: {
+        width: 220,
+        height: 260,
+        border: "1px solid #ddd",
+        borderRadius: 8,
+        backgroundColor: "#fafafa",
+        display: "flex",
+        flexDirection: "column",
+        overflow: "hidden",
+        position: "relative",
+        cursor: "pointer",
+        transition: "0.2s",
     },
     imageBox: {
-        width: "100%",
-        height: "200px",
-        background: "#f1f1f1",
-        borderRadius: "6px",
-        marginBottom: "16px",
+        overflow: "hidden",
+        backgroundColor: "#eee",
     },
     rowBetween: {
+        padding: 16,
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
     },
     bookTitle: {
-        fontSize: "14px",
-    },
-    actionRow: {
-        display: "flex",
-        gap: "8px",
-    },
-    editBtn: {
-        border: "none",
-        background: "transparent",
-        color: "#0070f3",
-        cursor: "pointer",
-    },
-    deleteBtn: {
-        border: "none",
-        background: "transparent",
-        color: "red",
-        cursor: "pointer",
-    },
-    likeIcon: {
-        width: "24px",
-        height: "24px",
-        cursor: "pointer",
-        objectFit: "contain",
+        margin: 0, 
+        fontWeight: "bold",
+        fontSize: 14,
+        whiteSpace: "nowrap",
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        maxWidth: "150px",
     },
     likeIconBox: {
-        cursor: "pointer",
         display: "flex",
         alignItems: "center",
+        cursor: "pointer",
+        transition: "transform 0.15s ease",
+    },
+    likeIcon: {
+        width: 22,
+        height: 22,
+        userSelect: "none",
+    },
+    textArea: {
+        padding: 16,
+        height: 76,
+ 
+        flexDirection: "column",
+        justifyContent: "center",
+    },
+
+    titleRow: {
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        height: 22,
+        gap: 8,
+    },
+
+    bookAuthor: {
+        margin: 0,
+        fontSize: 12,
+        color: "#777",
+        marginTop: 4,
+        marginBottom: 0,
+        lineHeight: "1.2",
+        whiteSpace: "nowrap",
+        overflow: "hidden",
+        textOverflow: "ellipsis",
     },
 };
